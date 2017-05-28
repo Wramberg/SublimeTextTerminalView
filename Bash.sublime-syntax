@@ -1,0 +1,13 @@
+%YAML 1.2
+---
+hidden: true
+scope: input.terminal.bash
+contexts:
+  main:
+    - match: ^[^$]+(\$)
+      captures:
+        1: punctuation.separator.bash
+      push: scope:source.shell
+      with_prototype:
+        - match: $
+          pop: true
