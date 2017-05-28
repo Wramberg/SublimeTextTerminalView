@@ -11,3 +11,31 @@ contexts:
       with_prototype:
         - match: $
           pop: true
+        - match: (\\)([ ]*)$\n?
+          captures:
+            1: punctuation.separator.continuation.line.bash
+          # make sure to resume parsing at next line
+          push:
+            - match: (?=\S|^\s*$)
+              pop: true
+    - match: 'bash: '
+      push:
+        - meta_scope: markup.changed
+        - match: $
+          pop: true
+        - match: \`
+          scope: punctuation.definition.string.begin.bash
+          push:
+            - meta_scope: string.quoted.bash
+            - match: "'"
+              scope: punctuation.definition.string.end.bash
+              pop: true
+    - match: (?=/) # Assume this is going to be a filesystem path
+      push: 
+        - match: meta.path.bash string.unquoted.bash
+        - match: /
+          scope: punctuation.separator.sequence.bash
+        - match: \\.
+          scope: punctuation.separator.escape.bash
+        - match: (?=\S)
+          pop: true
