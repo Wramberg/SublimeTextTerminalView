@@ -2,11 +2,15 @@ import os
 import select
 import subprocess
 import struct
-import fcntl
-import termios
+import sublime
+if sublime.platform() in ("linux", "osx"):
+    import fcntl
+    import termios
+elif sublime.platform() == "windows":
+    pass
+    # TODO
 
-
-class LinuxPty():
+class LinuxPty(object):
     def __init__(self, *cmd):
         self._cmd = cmd
         self._env = os.environ.copy()

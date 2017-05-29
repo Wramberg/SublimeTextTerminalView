@@ -21,9 +21,12 @@ from . import utils
 # TerminalViewCore instance for that view is called to handle everything.
 class TerminalViewOpen(sublime_plugin.WindowCommand):
     def run(self):
-        win = sublime.active_window()
-        view = win.new_file()
-        view.run_command("terminal_view_core")
+        if sublime.platform() in ("linux", "osx"):
+            win = sublime.active_window()
+            view = win.new_file()
+            view.run_command("terminal_view_core")
+        elif sublime.platform() == "windows":
+            sublime.error_message("Windows not supported!")
 
 
 # Main command to glue everything together. One instance of this per view.
