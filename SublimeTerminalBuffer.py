@@ -14,15 +14,12 @@ class SublimeTerminalBuffer():
         sublime_view.set_scratch(True)
         sublime_view.set_read_only(True)
         sublime_view.settings().set("gutter", False)
-        sublime_view.settings().set("highlight_line", False)
-        sublime_view.settings().set("auto_complete_commit_on_tab", False)
         sublime_view.settings().set("draw_centered", False)
         sublime_view.settings().set("word_wrap", False)
         sublime_view.settings().set("auto_complete", False)
         sublime_view.settings().set("draw_white_space", "none")
         sublime_view.settings().set("draw_indent_guides", False)
-        sublime_view.settings().set("caret_style", "blink")
-        sublime_view.settings().add_on_change('color_scheme', lambda: set_color_scheme(sublime_view))
+        sublime_view.settings().set("syntax", "Packages/TerminalView/Bash.sublime-syntax")
 
         # Mark in the views private settings that this is a terminal view so we
         # can use this as context in the keymap
