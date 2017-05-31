@@ -4,9 +4,6 @@ import sublime_plugin
 from . import pyte
 from . import utils
 
-global_keypress_callbacks = {}
-
-
 class SublimeTerminalBuffer():
     def __init__(self, sublime_view, title):
         self._view = sublime_view
@@ -35,9 +32,6 @@ class SublimeTerminalBuffer():
         self._bytestream = pyte.ByteStream()
         self._screen = pyte.DiffScreen(800, 240)
         self._bytestream.attach(self._screen)
-
-    def set_keypress_callback(self, callback):
-        global_keypress_callbacks[self._view.id()] = callback
 
     def insert_data(self, data):
         self._bytestream.feed(data)
@@ -100,36 +94,9 @@ class TerminalViewMoveCursor(sublime_plugin.TextCommand):
 
 
 class TerminalViewKeypress(sublime_plugin.TextCommand):
-    def run(self, edit, key, ctrl=False, alt=False, shift=False, meta=False):
-        if type(key) is not str:
-            sublime.error_message("Terminal View: Got keypress with non-string key")
-            return
-
-        # if alt:
-            # sublime.error_message("Terminal View: Alt key is not supported yet")
-            # return
-
-        if meta:
-            sublime.error_message("Terminal View: Meta key is not supported yet")
-            return
-
-        out_str = "Keypress registered: "
-        if ctrl:
-            out_str += "[ctrl] + "
-        if alt:
-            out_str += "[alt] + "
-        if shift:
-            out_str += "[shift] + "
-        if meta:
-            out_str += "[meta] + "
-        out_str += "[" + key + "]"
-        utils.log_to_console(out_str)
-
-        if self.view.id() not in global_keypress_callbacks:
-            return
-
-        cb = global_keypress_callbacks[self.view.id()]
-        cb(key, ctrl, alt, shift, meta)
+    def run(self, edit, **kwargs):
+        settings = self.view.settings()
+        settings.set("_terminal_key", kwargs)
 
 
 class TerminalViewClear(sublime_plugin.TextCommand):
@@ -152,14 +119,6 @@ class TerminalViewUpdateLines(sublime_plugin.TextCommand):
             else:
                 self.view.replace(edit, line_region, content)
         self.view.set_read_only(True)
-
-
-class TerminalViewOnCloseCleanup(sublime_plugin.EventListener):
-    def on_close(self, view):
-        if view.id() in global_keypress_callbacks:
-            utils.log_to_console("Cleaning up after view %i closed" % view.id())
-            del global_keypress_callbacks[view.id()]
-
 
 def set_color_scheme(view):
     """
