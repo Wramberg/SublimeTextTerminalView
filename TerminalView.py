@@ -58,7 +58,7 @@ class TerminalViewCore(sublime_plugin.TextCommand):
         self._cwd = cwd
 
         self._terminal_buffer = SublimeTerminalBuffer.SublimeTerminalBuffer(self.view, title)
-        self._terminal_buffer.set_keypress_callback(self.terminal_view_keypress_callback)
+        self.view.settings().add_on_change("_terminal_key", self.terminal_view_keypress_callback)
         self._terminal_buffer_is_open = True
         self._terminal_rows = 0
         self._terminal_columns = 0
@@ -71,18 +71,18 @@ class TerminalViewCore(sublime_plugin.TextCommand):
         # Allow for ST to service the view before we boostrap everything
         sublime.set_timeout(self._bootstrap_terminal_view, 10)
 
-    def terminal_view_keypress_callback(self, key, ctrl=False, alt=False, shift=False, meta=False):
+    def terminal_view_keypress_callback(self):
         """
         Callback when a keypress is registered in the Sublime Terminal buffer.
-
-        Args:
-            key (str): String describing pressed key. May be a name like 'home'.
-            ctrl (boolean, optional)
-            alt (boolean, optional)
-            shift (boolean, optional)
-            meta (boolean, optional)
         """
-        self._shell.send_keypress(key, ctrl, alt, shift, meta)
+        args = self.view.settings().get("_terminal_key")
+        if not args: return
+        self.view.settings().erase("_terminal_key")
+        utils.log_to_console("Keypress: %s" % str(args))
+        if args["meta"]:
+            sublime.error_message("Terminal View: Meta key is not supported yet")
+            return
+        self._shell.send_keypress(args["key"], args["ctrl"], args["alt"], args["shift"], args["meta"])
 
     def _bootstrap_terminal_view(self):
         """
@@ -172,6 +172,7 @@ class TerminalViewCore(sublime_plugin.TextCommand):
         """
         Stop the terminal and close everything down.
         """
+        self.view.settings().clear_on_change("_terminal_key")
         if self._terminal_buffer_is_open:
             self._terminal_buffer.close()
             self._terminal_buffer_is_open = False
