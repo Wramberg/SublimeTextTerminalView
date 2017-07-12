@@ -143,7 +143,7 @@ class TerminalViewCore(sublime_plugin.TextCommand):
         data = self._shell.receive_output(max_read_size)
         if data is not None:
             self._console_logger.log("Got %u bytes of data from shell" % (len(data), ))
-            self._terminal_buffer.insert_data(data)
+            self._terminal_buffer.process_data(data)
 
     def _resize_screen_if_needed(self):
         """

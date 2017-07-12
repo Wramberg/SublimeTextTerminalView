@@ -61,14 +61,74 @@ class SublimeTerminalBuffer():
         self._view.terminal_view_emulator = \
             terminal_emulator.PyteTerminalEmulator(80, 24, hist, ratio)
 
+        self._processor = self.data_processor()
+        self._processor.send(None)
+
+        self.image_count = 0
+
     def set_keypress_callback(self, callback):
         self._view.terminal_view_keypress_callback = callback
+
+    def data_processor(self):
+        # would be more efficient to extend pyte classes since pyte is doing a similar job
+        buf = b""
+        is_data = False
+        while True:
+            b = yield
+            if not is_data and b == b"\x1b":
+                b = yield
+                b = b"\x1b" + b
+                if b == b"\x1b]":
+                    is_data = True
+            elif is_data and b == b"\x07":
+                is_data = False
+                self.handle_data(buf)
+                buf = b""
+            elif is_data:
+                buf = buf + b
+
+            if not is_data:
+                self.insert_data(b)
+
+    def process_data(self, data):
+        for d in data:
+            self._processor.send(bytes([d]))
 
     def insert_data(self, data):
         start = time.time()
         self._view.terminal_view_emulator.feed(data)
         t = time.time() - start
         self._view.terminal_view_logger.log("Updated terminal emulator in %.3f ms" % (t * 1000.))
+
+    def handle_data(self, data):
+        s = data.decode()
+        if s[0:4] != "1337":
+            self.insert_data(data)
+            return
+        if "File=name" in s:
+            self.handle_image(s)
+
+    def handle_image(self, data):
+        image_data = data[data.find(":")+1:]
+
+        cursor_pos = self._view.terminal_view_emulator.cursor()
+        tp = self._view.text_point(cursor_pos[0], cursor_pos[1])
+        region = sublime.Region(tp, tp)
+        html = """
+        <img src="data:image/png;base64,{}" /> <a href="{}">x</a>
+        """
+
+        def callback(href):
+            self._view.erase_phantoms("TerminalView" + href)
+
+        self.image_count += 1
+        self._view.add_phantom(
+            "TerminalView" + str(self.image_count),
+            region,
+            html.format(image_data, self.image_count),
+            sublime.
+            LAYOUT_BLOCK,
+            callback)
 
     def update_view(self):
         # If update fails last_update remains the same
