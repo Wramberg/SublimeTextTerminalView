@@ -206,4 +206,7 @@
     // {"keys": ["ctrl+^"], "command": "terminal_view_keypress", "args": {"key": "^", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
     // {"keys": ["ctrl+shift+\\"], "command": "terminal_view_keypress", "args": {"key": "|", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
     // {"keys": ["ctrl+\\"], "command": "terminal_view_keypress", "args": {"key": "\\", "alt": false, "ctrl": true, "shift": false, "meta": false}, "context": [{"key": "setting.terminal_view"}]},
+
+    // sigquit
+    {"keys": ["ctrl+\\"], "command": "terminal_view_keypress", "args": {"key": "\\", "ctrl": true}, "context": [{"key": "setting.terminal_view"}]},
 ]

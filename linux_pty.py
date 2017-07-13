@@ -11,6 +11,7 @@ import signal
 try:
     import fcntl
     import termios
+    import tty
 except ImportError:
     pass
 
@@ -61,7 +62,8 @@ class LinuxPty():
             tiocswinsz = getattr(termios, 'TIOCSWINSZ', -2146929561)
             size_update = struct.pack('HHHH', lines, columns, 0, 0)
             fcntl.ioctl(self._pts, tiocswinsz, size_update)
-            os.kill(self._process.pid, signal.SIGWINCH)
+            if not self.is_ignoring_signal():
+                self._send_signal("SIGWINCH")
 
     def is_running(self):
         """
@@ -69,10 +71,26 @@ class LinuxPty():
         """
         return self._process is not None and self._process.poll() is None
 
+    def is_ignoring_signal(self):
+        """
+        Check if the pty is ignoring signal
+        """
+        attr = termios.tcgetattr(self._pts)
+        return attr[tty.LFLAG] & termios.ISIG == 0
+
     def send_keypress(self, key, ctrl=False, alt=False, shift=False, meta=False):
         """
         Send keypress to the shell
         """
+
+        # check if the keypress will translate into signal
+        if not self.is_ignoring_signal():
+            if ctrl:
+                sig = self._get_ctrl_signal_code(key)
+                if sig:
+                    self._send_signal(sig)
+                    return
+
         if ctrl:
             keycode = self._get_ctrl_combination_key_code(key)
         elif alt:
@@ -81,6 +99,12 @@ class LinuxPty():
             keycode = self._get_key_code(key)
 
         self._send_string(keycode)
+
+    def _send_signal(self, s):
+        if self.is_running:
+            if s in dir(signal):
+                signum = getattr(signal, s)
+                os.killpg(self._process.pid, signum)
 
     def _get_ctrl_combination_key_code(self, key):
         key = key.lower()
@@ -109,9 +133,22 @@ class LinuxPty():
 
         return key
 
+    def _get_ctrl_signal_code(self, key):
+        if key in _LINUX_CTRL_SIGNAL_MAP:
+            return _LINUX_CTRL_SIGNAL_MAP[key]
+
+        return None
+
     def _send_string(self, string):
         if self.is_running():
             os.write(self._pty, string.encode('UTF-8'))
+
+
+_LINUX_CTRL_SIGNAL_MAP = {
+    "c": "SIGINT",
+    "z": "SIGTSTP",
+    "\\": "SIGQUIT"
+}
 
 
 _LINUX_KEY_MAP = {
