@@ -83,6 +83,26 @@ Shortcut | Description
 
 Note that standard ST3 keybindings for selection are **not** shadowed which mean you can use `shift` + `keys` for selection in the terminal in case you prefer to use the keyboard. These keybindings do not move the actual terminal cursor however so whenever the terminal is updated the cursor will snap back to its point of origin.
 
+### Ctrl+c/v for copy and paste
+In TerminalView's default keymap copy is bound to ctrl+shift+c and paste to ctrl+shift+v. This implements the keybinding on most system terminals in which ctrl+c usually aborts a running process. However those users who wish to keep Sublime Text's internal ekybindings consistent, i.e. use ctrl+c/v for copy/paste in TerminalView as well can do so via the keybindings below:
+
+**Linux/Windows**
+```
+{"keys": ["ctrl+c"], "command": "terminal_view_copy", "context": [{"key": "setting.terminal_view"}]},
+{"keys": ["ctrl+v"], "command": "terminal_view_paste", "context": [{"key": "setting.terminal_view"}]},
+{"keys": ["ctrl+shift+c"], "command": "terminal_view_keypress", "args": {"key": "c", "ctrl": true}, "context": [{"key": "setting.terminal_view"}]},
+{"keys": ["ctrl+shift+v"], "command": "terminal_view_keypress", "args": {"key": "v", "ctrl": true}, "context": [{"key": "setting.terminal_view"}]},
+```
+
+**Mac OS**
+```
+{"keys": ["ctrl+c"], "command": "terminal_view_copy", "context": [{"key": "setting.terminal_view"}]},
+{"keys": ["ctrl+v"], "command": "terminal_view_paste", "context": [{"key": "setting.terminal_view"}]},
+{"keys": ["ctrl+shift+c"], "command": "terminal_view_keypress", "args": {"key": "c", "ctrl": true}, "context": [{"key": "setting.terminal_view"}]},
+{"keys": ["ctrl+shift+v"], "command": "terminal_view_keypress", "args": {"key": "v", "ctrl": true}, "context": [{"key": "setting.terminal_view"}]},
+```
+
+
 ## Settings
 The settings are available in the menu: *Preferences->Package Settings->TerminalView* or through the command palette. The settings include options for adjusting colors, scrollback history and similar. Simply copy the settings you want to change into your user settings.
 
