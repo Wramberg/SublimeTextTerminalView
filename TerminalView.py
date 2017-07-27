@@ -43,7 +43,7 @@ class TerminalViewOpen(sublime_plugin.WindowCommand):
             cwd = "${file_path:${folder}}"
         cwd = sublime.expand_variables(cwd, st_vars)
         if not cwd:
-            cwd = os.environ["HOME"]
+            cwd = os.environ.get("HOME", None)
         if not cwd:
             # Last resort
             cwd = "/"
