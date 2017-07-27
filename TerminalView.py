@@ -37,8 +37,8 @@ class TerminalViewOpen(sublime_plugin.WindowCommand):
             sublime.error_message("TerminalView: Unsupported OS")
             return
 
+        st_vars = self.window.extract_variables()
         if cwd is None:
-            st_vars = self.window.extract_variables()
             if "file_path" in st_vars:
                 cwd = st_vars["file_path"]
             elif "folder" in st_vars:
@@ -47,6 +47,8 @@ class TerminalViewOpen(sublime_plugin.WindowCommand):
                 cwd = os.environ["HOME"]
             else:
                 cwd = "/"
+        else:
+            cwd = sublime.expand_variables(cwd, st_vars)
 
         args = {"cmd": cmd, "title": title, "cwd": cwd, "syntax": syntax}
         self.window.new_file().run_command("terminal_view_activate", args=args)
