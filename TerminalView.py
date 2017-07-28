@@ -4,15 +4,8 @@ initializing a terminal view
 """
 
 import os
-import threading
-import time
-
 import sublime
 import sublime_plugin
-
-from . import sublime_terminal_buffer
-from . import linux_pty
-from . import utils
 
 
 class TerminalViewOpen(sublime_plugin.WindowCommand):
@@ -49,140 +42,47 @@ class TerminalViewOpen(sublime_plugin.WindowCommand):
             # Last resort
             cwd = "/"
 
-        args = {"cmd": cmd, "title": title, "cwd": cwd, "syntax": syntax}
-        self.window.new_file().run_command("terminal_view_activate", args=args)
+        # args = {"cmd": cmd, "title": title, "cwd": cwd, "syntax": syntax}
+        # self.window.new_file().run_command("terminal_view_activate", args=args)
+        view = self.window.new_file()
+        view.set_name(title)
+        if syntax:
+            view.set_syntax_file("Packages/User/" + syntax)
+        view.settings().set("_terminal_view_cmd", cmd)
+        view.settings().set("_terminal_view_cwd", cwd)
+        view.settings().set("gutter", False)
+        view.settings().set("highlight_line", False)
+        view.settings().set("auto_complete_commit_on_tab", False)
+        view.settings().set("draw_centered", False)
+        view.settings().set("word_wrap", False)
+        view.settings().set("auto_complete", False)
+        view.settings().set("draw_white_space", "none")
+        view.settings().set("draw_indent_guides", False)
+        view.settings().set("caret_style", "blink")
+        view.settings().set("scroll_past_end", False)
+        view.settings().add_on_change(
+            "color_scheme",
+            lambda: set_color_scheme(view))
+        view.set_scratch(True)
+        view.set_read_only(True)
+        view.settings().set("_terminal_view", True)
 
 
-class TerminalViewActivate(sublime_plugin.TextCommand):
-    def run(self, _, cmd, title, cwd, syntax):
-        terminal_view = TerminalView(self.view)
-        utils.TerminalViewManager.register(terminal_view)
-        terminal_view.run(cmd, title, cwd, syntax)
-
-
-class TerminalView:
+def set_color_scheme(view):
     """
-    Main class to glue all parts together for a single instance of a terminal
-    view.
+    Set color scheme for view
     """
-    def __init__(self, view):
-        self.view = view
+    color_scheme = "Packages/TerminalView/TerminalView.hidden-tmTheme"
 
-    def run(self, cmd, title, cwd, syntax):
-        """
-        Initialize the view as a terminal view.
-        """
-        self._cmd = cmd
-        self._cwd = cwd
-        self._console_logger = utils.ConsoleLogger()
+    # Check if user color scheme exists
+    try:
+        sublime.load_resource("Packages/User/TerminalView.hidden-tmTheme")
+        color_scheme = "Packages/User/TerminalView.hidden-tmTheme"
+    except:
+        pass
 
-        # Initialize the sublime view
-        self._terminal_buffer = sublime_terminal_buffer.SublimeTerminalBuffer(self.view, title,
-                                                                              self._console_logger,
-                                                                              syntax)
-        self._terminal_buffer.set_keypress_callback(self.terminal_view_keypress_callback)
-        self._terminal_buffer_is_open = True
-        self._terminal_rows = 0
-        self._terminal_columns = 0
-
-        # Start the underlying shell
-        self._shell = linux_pty.LinuxPty(self._cmd.split(), self._cwd)
-        self._shell_is_running = True
-
-        # Save the command args in view settings so it can restarted when ST3 is
-        # restarted (or when changing back to a project that had a terminal view
-        # open)
-        args = {"cmd": cmd, "title": title, "cwd": cwd, "syntax": syntax}
-        self.view.settings().set("terminal_view_activate_args", args)
-
-        # Start the main loop
-        threading.Thread(target=self._main_update_loop).start()
-
-    def terminal_view_keypress_callback(self, key, ctrl=False, alt=False, shift=False, meta=False):
-        """
-        Callback when a keypress is registered in the Sublime Terminal buffer.
-
-        Args:
-            key (str): String describing pressed key. May be a name like 'home'.
-            ctrl (boolean, optional)
-            alt (boolean, optional)
-            shift (boolean, optional)
-            meta (boolean, optional)
-        """
-        self._shell.send_keypress(key, ctrl, alt, shift, meta)
-
-    def send_string_to_shell(self, string):
-        self._shell.send_string(string)
-
-    def _main_update_loop(self):
-        """
-        This is the main update function. It attempts to run at a certain number
-        of frames per second, and keeps input and output synchronized.
-        """
-        # 30 frames per second should be responsive enough
-        ideal_delta = 1.0 / 30.0
-        current = time.time()
-        while True:
-            self._poll_shell_output()
-            success = self._terminal_buffer.update_view()
-            if not success:
-                # Leave view open as we should only get an update if we are
-                # reloading the plugin
-                self._stop(close_view=False)
-                break
-
-            self._resize_screen_if_needed()
-            if (not self._terminal_buffer.is_open()) or (not self._shell.is_running()):
-                self._stop()
-                break
-
-            previous = current
-            current = time.time()
-            actual_delta = current - previous
-            time_left = ideal_delta - actual_delta
-            if time_left > 0.0:
-                time.sleep(time_left)
-
-    def _poll_shell_output(self):
-        """
-        Poll the output of the shell
-        """
-        max_read_size = 4096
-        data = self._shell.receive_output(max_read_size)
-        if data is not None:
-            self._console_logger.log("Got %u bytes of data from shell" % (len(data), ))
-            self._terminal_buffer.insert_data(data)
-
-    def _resize_screen_if_needed(self):
-        """
-        Check if the terminal view was resized. If so update the screen size of
-        the terminal and notify the shell.
-        """
-        (rows, cols) = self._terminal_buffer.view_size()
-        row_diff = abs(self._terminal_rows - rows)
-        col_diff = abs(self._terminal_columns - cols)
-
-        if row_diff or col_diff:
-            log = "Changing screen size from (%i, %i) to (%i, %i)" % \
-                  (self._terminal_rows, self._terminal_columns, rows, cols)
-            self._console_logger.log(log)
-
-            self._terminal_rows = rows
-            self._terminal_columns = cols
-            self._shell.update_screen_size(self._terminal_rows, self._terminal_columns)
-            self._terminal_buffer.update_terminal_size(self._terminal_rows, self._terminal_columns)
-
-    def _stop(self, close_view=True):
-        """
-        Stop the terminal and close everything down.
-        """
-        if self._terminal_buffer_is_open and close_view:
-            self._terminal_buffer.close()
-            self._terminal_buffer_is_open = False
-
-        if self._shell_is_running:
-            self._shell.stop()
-            self._shell_is_running = False
+    if view.settings().get('color_scheme') != color_scheme:
+        view.settings().set('color_scheme', color_scheme)
 
 
 def plugin_loaded():

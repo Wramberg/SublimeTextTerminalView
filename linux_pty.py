@@ -129,6 +129,7 @@ _LINUX_KEY_MAP = {
     "pagedown": "\x1b[6~",
     "delete": "\x1b[3~",
     "insert": "\x1b[2~",
+    "plus": "+",
     "f1": "\x1bOP",
     "f2": "\x1bOQ",
     "f3": "\x1bOR",
