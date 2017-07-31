@@ -4,6 +4,8 @@ import sublime_plugin
 
 class TerminalViewExec(sublime_plugin.WindowCommand):
 
+    _init_args = {}
+
     def run(self, *args, **kwargs):
         name = kwargs.get("name", "Executable")
         env = kwargs.get("env", {})
@@ -21,9 +23,37 @@ class TerminalViewExec(sublime_plugin.WindowCommand):
                 if not working_dir:
                     working_dir = "/"
         args = kwargs.get("args", "")
-        invocation = " ".join(cmd) + args
-        self.window.run_command("terminal_view_open", args={
-                                    "cmd": invocation,
-                                    "cwd": working_dir,
-                                    "title": name,
-                                    "autoclose": False})
+        invocation = " ".join(cmd)
+        if not args:
+            self.name = name
+            self.invocation = invocation
+            self.working_dir = working_dir
+            # Retrieve the init args for lazy people
+            cached_args = self.__class__._init_args.get(invocation, "")
+            title = 'Arguments for "{}" '.format(invocation)
+            if cached_args:
+                title += ":"
+            else:
+                title += "(press Enter for no args): "
+            self.window.show_input_panel(title,
+                                         cached_args,
+                                         self._on_done,
+                                         None,
+                                         None)
+        else:
+            self._run(invocation, working_dir, name)
+
+    def _on_done(self, text):
+        # Cache the init args for lazy people
+        self.__class__._init_args[self.invocation] = text
+        self.invocation += " " + text
+        self._run(self.invocation, self.working_dir, self.name)
+
+    def _run(self, cmd, cwd, title):
+        self.window.run_command("terminal_view_open",
+                                {
+                                    "cmd": cmd,
+                                    "cwd": cwd,
+                                    "title": title,
+                                    "autoclose": False
+                                })
