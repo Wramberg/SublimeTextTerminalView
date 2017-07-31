@@ -45,7 +45,12 @@ class TerminalViewOpen(sublime_plugin.WindowCommand):
     class per sublime window. Once a terminal view has been opened the
     TerminalViewActivate instance for that view is called to handle everything.
     """
-    def run(self, cmd="/bin/bash -l", title="Terminal", cwd=None, syntax=None):
+    def run(self,
+            cmd="/bin/bash -l",
+            title="Terminal",
+            cwd=None,
+            syntax=None,
+            autoclose=True):
         """
         Open a new terminal view
 
@@ -74,7 +79,9 @@ class TerminalViewOpen(sublime_plugin.WindowCommand):
             cwd = "/"
 
         args = {"cmd": cmd, "title": title, "cwd": cwd, "syntax": syntax}
-        self.window.new_file().run_command("terminal_view_activate", args=args)
+        view = self.window.new_file()
+        view.settings().set("terminal_view_close_view_too", autoclose)
+        view.run_command("terminal_view_activate", args=args)
 
 
 class TerminalViewActivate(sublime_plugin.TextCommand):

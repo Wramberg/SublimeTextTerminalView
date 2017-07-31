@@ -113,8 +113,15 @@ class SublimeTerminalBuffer():
 
     def close(self):
         if self.is_open():
-            sublime.active_window().focus_view(self._view)
-            sublime.active_window().run_command("close_file")
+            if self._view.settings().get("terminal_view_close_view_too", True):
+                sublime.active_window().focus_view(self._view)
+                sublime.active_window().run_command("close_file")
+            else:
+                # flush output
+                import TerminalView
+                term = TerminalView.TerminalView.TerminalViewManager.load_from_id(self._view.id())
+                output = term._shell.receive_output(4000)
+                print(output)
         SublimeBufferManager.deregister(self._view.id())
         self._keypress_callback = None
 
