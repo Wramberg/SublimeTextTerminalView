@@ -6,12 +6,12 @@
     This module defines both CSI and non-CSI escape sequences, recognized
     by :class:`~pyte.streams.Stream` and subclasses.
 
-    :copyright: (c) 2011-2013 by Selectel, see AUTHORS for details.
+    :copyright: (c) 2011-2012 by Selectel.
+    :copyright: (c) 2012-2017 by pyte authors and contributors,
+                    see AUTHORS for details.
     :license: LGPL, see LICENSE for more details.
 """
-
 from __future__ import unicode_literals
-
 
 #: *Reset*.
 RIS = "c"
@@ -39,20 +39,6 @@ DECSC = "7"
 #: attribute (graphic rendition), character set, and origin mode
 #: selection. If none were saved, move cursor to home position.
 DECRC = "8"
-
-
-# "Percent" escape sequences.
-# ---------------------------
-
-#: *Select default (ISO 646 / ISO 8859-1)*.
-DEFAULT = "@"
-
-#: *Select UTF-8*.
-UTF8 = "G"
-
-#: *Select UTF-8 (obsolete)*.
-UTF8_OBSOLETE = "8"
-
 
 # "Sharp" escape sequences.
 # -------------------------
