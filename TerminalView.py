@@ -80,7 +80,13 @@ class TerminalViewOpen(sublime_plugin.WindowCommand):
 class TerminalViewActivate(sublime_plugin.TextCommand):
     def run(self, _, cmd, title, cwd, syntax):
         terminal_view = TerminalView(self.view)
-        terminal_view.run(cmd, title, cwd, syntax)
+        try:
+            terminal_view.run(cmd, title, cwd, syntax)
+        except FileNotFoundError:
+            sublime.error_message("Failed to open directory: {}".format(cwd))
+            # Note that this exception is only thrown from within LinuxPty,
+            # at which point the registration to the manager hasn't happened
+            # yet, so we don't have to deregister.
 
 
 class TerminalView:
