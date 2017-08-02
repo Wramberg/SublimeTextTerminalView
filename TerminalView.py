@@ -107,6 +107,10 @@ class TerminalView:
         self._cmd = cmd
         self._cwd = cwd
 
+        # Start the underlying shell
+        self._shell = linux_pty.LinuxPty(self._cmd.split(), self._cwd)
+        self._shell_is_running = True
+
         # Initialize the sublime view
         self._terminal_buffer = \
             sublime_terminal_buffer.SublimeTerminalBuffer(self.view, title, syntax)
@@ -114,10 +118,6 @@ class TerminalView:
         self._terminal_buffer_is_open = True
         self._terminal_rows = 0
         self._terminal_columns = 0
-
-        # Start the underlying shell
-        self._shell = linux_pty.LinuxPty(self._cmd.split(), self._cwd)
-        self._shell_is_running = True
 
         # Save the command args in view settings so it can restarted when ST3 is
         # restarted (or when changing back to a project that had a terminal view
