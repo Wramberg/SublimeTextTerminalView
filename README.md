@@ -149,6 +149,62 @@ There are currently no syntax-files provided with the plugin so users must creat
 ## Project switching and ST3 startup
 When switching projects or (re)starting ST3 the plugin restarts all terminals views. Unfortunately, there is no obvious way of restoring earlier sessions so the views are completely reset.
 
+## Running executables interactively through a Sublime build system
+
+In a Sublime build system, you can use the `terminal_view_exec` command for the
+`"target"` key. You can then use the keyboard to give input to whatever
+executable that you're running.
+
+For example, consider this `.sublime-project`:
+
+```
+{
+  "build_systems":
+  [
+    {
+      "name": "My Build",
+      "shell_cmd": "c++ program.c -o program",
+      "working_dir" "$project_path"
+      "variants":
+      [
+        {
+          "name": "Run program",
+          "shell_cmd": "./program",
+          "working_dir": "$project_path"
+        }
+      ]
+    }
+  ],
+  "folders":
+  [
+    {
+      "path": "."
+    }
+  ],
+  "settings":
+  {
+  }
+}
+```
+When you click on *Tools* -> *Build With...* in the menu, you may select the
+*My Build - Run program* variant. This will open an output panel and run your
+program. Unfortunately, if the program wants input from user, you cannot type
+on your keyboard to send that input to the program. To solve this you can change
+the variant to:
+```
+        {
+          "name": "Run program",
+          "target": "terminal_view_exec",
+          "shell_cmd": "./program",
+          "working_dir": "$project_path"
+        }
+```
+This will run your program inside a TerminalView instead. You will be able to
+supply input with the keyboard.
+<sup>Note: the default value for the `"target"` is the `"exec"` command.</sup>
+
+At this point, a custom `"env"` key is not yet supported.
+
 ## Common problems
 List of common problems you may encounter when using this plugin.
 
