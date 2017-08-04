@@ -48,9 +48,6 @@ class LinuxPty():
         """
         Poll the shell output
         """
-        if not self.is_running():
-            return None
-
         (ready, _, _) = select.select([self._pty], [], [], timeout)
         if not ready:
             return None

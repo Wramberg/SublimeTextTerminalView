@@ -159,15 +159,16 @@ class TerminalView:
             self._poll_shell_output(timeout=update_rate)
             self._terminal_buffer.update_view()
             self._resize_screen_if_needed()
-            if (not self._terminal_buffer.is_open()) or (not self._shell.is_running()):
-                self._stop()
+            if not self._shell.is_running():
+                self._poll_shell_output(timeout=0)
                 break
+        self._stop()
 
     def _poll_shell_output(self, timeout=0):
         """
         Poll the output of the shell
         """
-        max_read_size = 4096
+        max_read_size = 2**12
         data = self._shell.receive_output(max_read_size, timeout=timeout)
         if data is not None:
             utils.ConsoleLogger.log("Got %u bytes of data from shell" % (len(data), ))

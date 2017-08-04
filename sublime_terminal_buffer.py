@@ -112,7 +112,9 @@ class SublimeTerminalBuffer():
         return self._view.is_valid()
 
     def close(self):
-        if self.is_open() and not self._view.settings().get("terminal_view_keep_open", False):
+        if self._view.settings().get("terminal_view_keep_open", False):
+            self.update_view()
+        elif self.is_open():
             sublime.active_window().focus_view(self._view)
             sublime.active_window().run_command("close_file")
         SublimeBufferManager.deregister(self._view.id())
