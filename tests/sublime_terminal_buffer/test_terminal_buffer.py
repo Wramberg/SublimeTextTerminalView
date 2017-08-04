@@ -31,9 +31,9 @@ class line_updates(unittest.TestCase):
         self._sublime_cmd._update_lines(None, lines, {})
 
         # Check that local copy of buffer is correct
-        buffer_cache = self._sub_buffer.buffer_contents()
+        buffer_cache = self._sub_buffer.view_content_cache()
         for i in range(5):
-            self.assertEqual(buffer_cache[i], self._expected_buffer_contents[i])
+            self.assertEqual(buffer_cache.get_line(i), self._expected_buffer_contents[i])
 
         # Check that replace calls are done correctly
         replaces = self._test_view.get_replace_calls()
@@ -55,9 +55,9 @@ class line_updates(unittest.TestCase):
         self._sublime_cmd._update_lines(None, lines, {})
 
         # Check that local copy of buffer is correct
-        buffer_cache = self._sub_buffer.buffer_contents()
+        buffer_cache = self._sub_buffer.view_content_cache()
         for i in range(5):
-            self.assertEqual(buffer_cache[i], self._expected_buffer_contents[i])
+            self.assertEqual(buffer_cache.get_line(i), self._expected_buffer_contents[i])
 
         # Check that replace calls are done correctly
         replaces = self._test_view.get_replace_calls()
@@ -97,10 +97,11 @@ class terminal_buffer(unittest.TestCase):
         expected_ctrl = False
         expected_alt = False
 
-        def keypress_cb(key, ctrl=False, alt=False, shift=False, meta=False):
+        def keypress_cb(key, ctrl=False, alt=False, shift=False, meta=False, app_mode=False):
             self.assertEqual(key, expected_key)
             self.assertEqual(ctrl, expected_ctrl)
             self.assertEqual(alt, expected_alt)
+            self.assertEqual(app_mode, False)
 
         # Set callback
         buf.set_keypress_callback(keypress_cb)

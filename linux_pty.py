@@ -4,8 +4,9 @@ Wrapper module around a Linux PTY which can be used to start an underlying shell
 
 import os
 import select
-import subprocess
 import struct
+import time
+import pty
 import signal
 
 try:
@@ -19,18 +20,15 @@ from . import utils
 
 class LinuxPty():
     """
-    Linux PTY class that starts an underlying and provides methods for
+    Linux PTY class that starts an underlying shell and provides methods for
     communicating with it
     """
     def __init__(self, cmd, cwd):
-        self._cmd = cmd
-        self._env = os.environ.copy()
-        self._env["TERM"] = "linux"
-        (self._pty, self._pts) = os.openpty()
-        self._process = subprocess.Popen(self._cmd, stdin=self._pts,
-                                         stdout=self._pts, stderr=self._pts, shell=False,
-                                         env=self._env, close_fds=True, start_new_session=True,
-                                         cwd=cwd)
+        self._shell_pid, self._master_fd = pty.fork()
+        if self._shell_pid == pty.CHILD:
+            os.environ["TERM"] = "linux"
+            os.chdir(cwd)
+            os.execv(cmd[0], cmd)
 
     def __del__(self):
         utils.ConsoleLogger.log("Linux PTY instance deleted")
@@ -40,19 +38,34 @@ class LinuxPty():
         Stop the shell
         """
         if self.is_running():
-            self._process.kill()
-        self._process = None
-        return
+            try:
+                os.kill(self._shell_pid, signal.SIGTERM)
+            except OSError:
+                pass
+
+        start = time.time()
+        while self.is_running() and (time.time() < (start + 0.2)):
+            time.sleep(0.05)
+
+        if self.is_running():
+            utils.ConsoleLogger.log("Failed to stop shell process")
+        else:
+            utils.ConsoleLogger.log("Shell process stopped")
 
     def receive_output(self, max_read_size, timeout=0):
         """
         Poll the shell output
         """
-        (ready, _, _) = select.select([self._pty], [], [], timeout)
+        (ready, _, _) = select.select([self._master_fd], [], [], timeout)
         if not ready:
             return None
 
-        return os.read(self._pty, max_read_size)
+        try:
+            data = os.read(self._master_fd, max_read_size)
+        except OSError:
+            return None
+
+        return data
 
     def update_screen_size(self, lines, columns):
         """
@@ -62,16 +75,20 @@ class LinuxPty():
             # Note, assume ws_xpixel and ws_ypixel are zero.
             tiocswinsz = getattr(termios, 'TIOCSWINSZ', -2146929561)
             size_update = struct.pack('HHHH', lines, columns, 0, 0)
-            fcntl.ioctl(self._pts, tiocswinsz, size_update)
-            os.kill(self._process.pid, signal.SIGWINCH)
+            fcntl.ioctl(self._master_fd, tiocswinsz, size_update)
 
     def is_running(self):
         """
         Check if the shell is running
         """
-        return self._process is not None and self._process.poll() is None
+        try:
+            pid, status = os.waitpid(self._shell_pid, os.WNOHANG)
+        except OSError:
+            return False
+        return True
 
-    def send_keypress(self, key, ctrl=False, alt=False, shift=False, meta=False):
+    def send_keypress(self, key, ctrl=False, alt=False, shift=False, meta=False,
+                      app_mode=False):
         """
         Send keypress to the shell
         """
@@ -80,13 +97,16 @@ class LinuxPty():
         elif alt:
             keycode = self._get_alt_combination_key_code(key)
         else:
-            keycode = self._get_key_code(key)
+            if app_mode:
+                keycode = self._get_app_key_code(key)
+            else:
+                keycode = self._get_key_code(key)
 
         self.send_string(keycode)
 
     def send_string(self, string):
         if self.is_running():
-            os.write(self._pty, string.encode('UTF-8'))
+            os.write(self._master_fd, string.encode('UTF-8'))
 
     def _get_ctrl_combination_key_code(self, key):
         key = key.lower()
@@ -108,6 +128,11 @@ class LinuxPty():
 
         code = self._get_key_code(key)
         return "\x1b" + code
+
+    def _get_app_key_code(self, key):
+        if key in _LINUX_APP_KEY_MAP:
+            return _LINUX_APP_KEY_MAP[key]
+        return self._get_key_code(key)
 
     def _get_key_code(self, key):
         if key in _LINUX_KEY_MAP:
@@ -142,6 +167,15 @@ _LINUX_KEY_MAP = {
     "f9": "\x1b[20~",
     "f10": "\x1b[21~",
     "f12": "\x1b[24~",
+    "bracketed_paste_mode_start": "\x1b[200~",
+    "bracketed_paste_mode_end": "\x1b[201~",
+}
+
+_LINUX_APP_KEY_MAP = {
+    "down": "\x1bOB",
+    "up": "\x1bOA",
+    "right": "\x1bOC",
+    "left": "\x1bOD",
 }
 
 _LINUX_CTRL_KEY_MAP = {

@@ -1,13 +1,13 @@
 import unittest
 
-from TerminalView import terminal_emulator
+from TerminalView import pyte_terminal_emulator
 
 class terminal_resize(unittest.TestCase):
     def test_lines_resize(self):
         nb_cols = 20
         nb_lines = 6
-        emulator = terminal_emulator.PyteTerminalEmulator(cols=nb_cols, lines=nb_lines, history=100,
-                                                          ratio=10.5)
+        emulator = pyte_terminal_emulator.PyteTerminalEmulator(cols=nb_cols, lines=nb_lines,
+                                                               history=100, ratio=10.5)
         lines = []
         lines.append("line 1")
         lines.append("line TWO")
@@ -52,7 +52,7 @@ class pyte_buffer_to_color_map(unittest.TestCase):
         buffer_factory = PyteBufferStubFactory(14, 37)
         pyte_buffer = buffer_factory.produce()
         lines = list(range(14))
-        color_map = terminal_emulator.convert_pyte_buffer_to_colormap(pyte_buffer, lines)
+        color_map = pyte_terminal_emulator.convert_pyte_buffer_to_colormap(pyte_buffer, lines)
         self.assertDictEqual(color_map, {})
 
     def test_lines_selection(self):
@@ -63,7 +63,7 @@ class pyte_buffer_to_color_map(unittest.TestCase):
             buffer_factory.set_color(i, 5, colors[i % len(colors)], "default")
 
         pyte_buffer = buffer_factory.produce()
-        color_map = terminal_emulator.convert_pyte_buffer_to_colormap(pyte_buffer, lines)
+        color_map = pyte_terminal_emulator.convert_pyte_buffer_to_colormap(pyte_buffer, lines)
 
         expected = {
             2: {
@@ -110,7 +110,7 @@ class pyte_buffer_to_color_map(unittest.TestCase):
 
         pyte_buffer = buffer_factory.produce()
         lines = list(range(25))
-        color_map = terminal_emulator.convert_pyte_buffer_to_colormap(pyte_buffer, lines)
+        color_map = pyte_terminal_emulator.convert_pyte_buffer_to_colormap(pyte_buffer, lines)
 
         expected = {
             0: {
@@ -144,7 +144,7 @@ class pyte_buffer_to_color_map(unittest.TestCase):
 
         pyte_buffer = buffer_factory.produce()
         lines = list(range(4))
-        color_map = terminal_emulator.convert_pyte_buffer_to_colormap(pyte_buffer, lines)
+        color_map = pyte_terminal_emulator.convert_pyte_buffer_to_colormap(pyte_buffer, lines)
 
         expected = {
             3: {
@@ -182,7 +182,7 @@ class pyte_buffer_to_color_map(unittest.TestCase):
         buffer_factory.set_color(0, 11, "cyan", "default", True)
 
         pyte_buffer = buffer_factory.produce()
-        color_map = terminal_emulator.convert_pyte_buffer_to_colormap(pyte_buffer, [0])
+        color_map = pyte_terminal_emulator.convert_pyte_buffer_to_colormap(pyte_buffer, [0])
 
         expected = {
             0: {

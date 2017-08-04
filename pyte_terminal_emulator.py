@@ -19,24 +19,29 @@ class PyteTerminalEmulator():
         self._screen = CustomHistoryScreen(cols, lines, history * 2, ratio)
         self._bytestream = pyte.ByteStream()
         self._bytestream.attach(self._screen)
+        self._modified = True
 
     def feed(self, data):
         self._screen.scroll_to_bottom()
         self._bytestream.feed(data)
+        self._modified = True
 
     def resize(self, lines, cols):
         self._screen.scroll_to_bottom()
         dirty_lines = max(lines, self._screen.lines)
         self._screen.dirty.update(range(dirty_lines))
+        self._modified = True
         return self._screen.resize(lines, cols)
 
     def prev_page(self):
         self._screen.prev_page()
         self._screen.ensure_screen_width()
+        self._modified = True
 
     def next_page(self):
         self._screen.next_page()
         self._screen.ensure_screen_width()
+        self._modified = True
 
     def dirty_lines(self):
         dirty_lines = {}
@@ -46,13 +51,14 @@ class PyteTerminalEmulator():
             for line in self._screen.dirty:
                 if line >= len(display):
                     # This happens when screen is resized smaller
-                    dirty_lines[line] = None
+                    break
                 else:
                     dirty_lines[line] = display[line]
 
         return dirty_lines
 
     def clear_dirty(self):
+        self._modified = False
         return self._screen.dirty.clear()
 
     def cursor(self):
@@ -68,6 +74,17 @@ class PyteTerminalEmulator():
     def display(self):
         return self._screen.display
 
+    def modified(self):
+        return self._modified
+
+    def bracketed_paste_mode_enabled(self):
+        return (2004 << 5) in self._screen.mode
+
+    def application_mode_enabled(self):
+        return False
+
+    def nb_lines(self):
+        return self._screen.lines
 
 History = namedtuple("History", "top bottom ratio size position")
 Margins = namedtuple("Margins", "top bottom")
@@ -242,6 +259,16 @@ class CustomHistoryScreen(pyte.DiffScreen):
 def take(n, iterable):
     """Returns first n items of the iterable as a list."""
     return list(islice(iterable, n))
+
+
+def convert_go_renditions_to_colormap(renditions, renditions_store, lines):
+    out = []
+    for line in renditions:
+        line_rends = []
+        for rendition in line:
+            line_rends.append(renditions_store[rendition])
+        out.append(line_rends)
+    print(out)
 
 
 def convert_pyte_buffer_to_colormap(buffer, lines):

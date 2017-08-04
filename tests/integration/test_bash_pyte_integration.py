@@ -5,7 +5,7 @@ import socket
 import getpass
 import copy
 
-from TerminalView import terminal_emulator
+from TerminalView import pyte_terminal_emulator
 from TerminalView import linux_pty
 
 
@@ -33,10 +33,10 @@ class NanoSuspendResumeTest(unittest.TestCase):
         self.cleared_display = copy.copy(self.expected_display)
 
         # Start terminal emulator
-        self.term_emulator = terminal_emulator.PyteTerminalEmulator(10, 10, 1000, 0.5)
+        self.term_emulator = pyte_terminal_emulator.PyteTerminalEmulator(10, 10, 1000, 0.5)
 
         # Start the shell
-        self.linux_pty_bash = linux_pty.LinuxPty("bash", self.home_dir)
+        self.linux_pty_bash = linux_pty.LinuxPty("/bin/bash", self.home_dir)
         self.assertTrue(self.linux_pty_bash.is_running())
 
         # Update screen size
@@ -134,7 +134,7 @@ class NanoSuspendResumeTest(unittest.TestCase):
         data = b''
         start = time.time()
         while (len(data) < num_bytes) and (time.time() < start + timeout):
-            new_data = self.linux_pty_bash.receive_output(2048, timeout=0.1)
+            new_data = self.linux_pty_bash.receive_output(2048)
             if new_data is not None:
                 data = data + new_data
 

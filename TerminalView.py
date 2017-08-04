@@ -132,7 +132,8 @@ class TerminalView:
         # Start the main loop
         threading.Thread(target=self._main_update_loop).start()
 
-    def keypress_callback(self, key, ctrl=False, alt=False, shift=False, meta=False):
+    def keypress_callback(self, key, ctrl=False, alt=False, shift=False,
+                          meta=False, app_mode=False):
         """
         Callback when a keypress is registered in the Sublime Terminal buffer.
 
@@ -143,7 +144,7 @@ class TerminalView:
             shift (boolean, optional)
             meta (boolean, optional)
         """
-        self._shell.send_keypress(key, ctrl, alt, shift, meta)
+        self._shell.send_keypress(key, ctrl, alt, shift, meta, app_mode)
 
     def send_string_to_shell(self, string):
         self._shell.send_string(string)
@@ -153,15 +154,27 @@ class TerminalView:
         This is the main update function. It attempts to run at a certain number
         of frames per second, and keeps input and output synchronized.
         """
-        update_rate = 1.0 / 30.0
+        # 30 frames per second should be responsive enough
+        ideal_delta = 1.0 / 30.0
+        current = time.time()
         while True:
-            # We timeout to service resize, scroll, etc.
-            self._poll_shell_output(timeout=update_rate)
+            self._poll_shell_output()
             self._terminal_buffer.update_view()
             self._resize_screen_if_needed()
             if not self._shell.is_running():
                 self._poll_shell_output(timeout=0)
                 break
+            # We use hard sleep here instead of any fancy timeout on the polling
+            # to avoid excessive amounts of updates. When you hit enter for
+            # example, the shell sends 2 bytes first (\r\n) and then the new
+            # prompt. We do not want to trigger to two updates in this case as
+            # the bottom line of terminal will appear to blink quickly.
+            previous = current
+            current = time.time()
+            actual_delta = current - previous
+            time_left = ideal_delta - actual_delta
+            if time_left > 0.0:
+                time.sleep(time_left)
         self._stop()
 
     def _poll_shell_output(self, timeout=0):
