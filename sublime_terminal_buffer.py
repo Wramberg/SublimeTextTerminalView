@@ -40,6 +40,7 @@ class SublimeBufferManager():
 class SublimeTerminalBuffer():
     def __init__(self, sublime_view, title, syntax_file=None):
         self._view = sublime_view
+        self._startup_time = time.time()
         self._view.set_name(title)
         self._view.set_scratch(True)
         self._view.set_read_only(True)
@@ -117,6 +118,9 @@ class SublimeTerminalBuffer():
 
     def close(self):
         if self._view.settings().get("terminal_view_keep_open", False):
+            t = time.time() - self._startup_time
+            msg = "[Finished in {0:0.1f}s]".format(t).encode("ascii")
+            self._term_emulator.feed(msg)
             self.update_view()
         elif self.is_open():
             sublime.active_window().focus_view(self._view)
