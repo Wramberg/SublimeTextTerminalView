@@ -112,12 +112,9 @@ class SublimeTerminalBuffer():
         return self._view.is_valid()
 
     def close(self):
-        if self.is_open():
-            if self._view.settings().get("terminal_view_close_view_too", True):
-                sublime.active_window().focus_view(self._view)
-                sublime.active_window().run_command("close_file")
-            else:
-                self.update_view()  # one last time?
+        if self.is_open() and not self._view.settings().get("terminal_view_keep_open", False):
+            sublime.active_window().focus_view(self._view)
+            sublime.active_window().run_command("close_file")
         SublimeBufferManager.deregister(self._view.id())
         self._keypress_callback = None
 
@@ -163,15 +160,17 @@ class TerminalViewScroll(sublime_plugin.TextCommand):
 
 
 class TerminalViewKeypress(sublime_plugin.TextCommand):
-    def __init__(self, view):
-        super().__init__(view)
-        self._sub_buffer = None
+
+    def is_enabled(self):
+        try:
+            self._sub_buffer = SublimeBufferManager.load_from_id(self.view.id())
+            return True
+        except Exception as e:
+            return False
 
     def run(self, _, **kwargs):
-        # Lookup the sublime buffer instance for this view the first time this
-        # command is called
-        if self._sub_buffer is None:
-            self._sub_buffer = SublimeBufferManager.load_from_id(self.view.id())
+        if not self._sub_buffer:
+            return
 
         if type(kwargs["key"]) is not str:
             sublime.error_message("Terminal View: Got keypress with non-string key")

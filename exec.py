@@ -6,7 +6,7 @@ class TerminalViewExec(sublime_plugin.WindowCommand):
 
     _init_args = {}
 
-    def run(self, *args, **kwargs):
+    def run(self, **kwargs):
         name = kwargs.get("name", "Executable")
         env = kwargs.get("env", {})
         env = os.environ.copy().update(env)
@@ -55,5 +55,5 @@ class TerminalViewExec(sublime_plugin.WindowCommand):
                                     "cmd": cmd,
                                     "cwd": cwd,
                                     "title": title,
-                                    "autoclose": False
+                                    "keep_open": True
                                 })

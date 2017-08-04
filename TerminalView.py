@@ -50,7 +50,7 @@ class TerminalViewOpen(sublime_plugin.WindowCommand):
             title="Terminal",
             cwd=None,
             syntax=None,
-            autoclose=True):
+            keep_open=False):
         """
         Open a new terminal view
 
@@ -80,7 +80,7 @@ class TerminalViewOpen(sublime_plugin.WindowCommand):
 
         args = {"cmd": cmd, "title": title, "cwd": cwd, "syntax": syntax}
         view = self.window.new_file()
-        view.settings().set("terminal_view_close_view_too", autoclose)
+        view.settings().set("terminal_view_keep_open", keep_open)
         view.run_command("terminal_view_activate", args=args)
 
 
