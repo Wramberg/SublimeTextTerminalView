@@ -73,6 +73,7 @@ class SublimeTerminalBuffer():
         self._term_emulator = pyte_terminal_emulator.PyteTerminalEmulator(80, 24, hist, ratio)
 
         self._keypress_callback = None
+        self._write_process_input_callback = None
         self._view_content_cache = sublime_view_cache.SublimeViewContentCache()
         self._view_region_cache = sublime_view_cache.SublimeViewRegionCache()
 
@@ -82,6 +83,9 @@ class SublimeTerminalBuffer():
 
     def __del__(self):
         utils.ConsoleLogger.log("Sublime buffer instance deleted")
+
+    def set_write_process_input_callback(self, callback):
+        self._term_emulator._screen.write_process_input = callback
 
     def set_keypress_callback(self, callback):
         self._keypress_callback = callback
