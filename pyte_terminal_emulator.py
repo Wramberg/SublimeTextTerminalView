@@ -267,6 +267,25 @@ class CustomHistoryScreen(pyte.DiffScreen):
         # Update tabstops to new screen size
         self.tabstops = set(range(8, self.columns, 8))
 
+    def report_device_status(self, mode):
+        """Reports terminal status or cursor position.
+
+        :param int mode: if 5 -- terminal status, 6 -- cursor position,
+                         otherwise a noop.
+
+        .. versionadded:: 0.5.0
+        """
+        if mode == 5:    # Request for terminal status.
+            self.write_process_input("\x1b[" + "0n")
+        elif mode == 6:  # Request for cursor position.
+            x = self.cursor.x + 1
+            y = self.cursor.y + 1
+
+            # "Origin mode (DECOM) selects line numbering."
+            if modes.DECOM in self.mode:
+                y -= self.margins.top
+            self.write_process_input("{0}{1};{2}R".format("\x1b[", y, x))
+
 
 def take(n, iterable):
     """Returns first n items of the iterable as a list."""
