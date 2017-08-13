@@ -68,6 +68,12 @@ class PyteTerminalEmulator():
 
         return (0, 0)
 
+    def cursor_is_hidden(self):
+        if self._screen.cursor:
+            return self._screen.cursor.hidden
+
+        return False
+
     def color_map(self, lines):
         return convert_pyte_buffer_to_colormap(self._screen.buffer, lines)
 

@@ -337,15 +337,19 @@ class TerminalViewUpdate(sublime_plugin.TextCommand):
         self.view.set_viewport_position((0, 0), animate=False)
 
     def _update_cursor(self):
-        cursor_pos = self._sub_buffer.terminal_emulator().cursor()
-        last_cursor_pos = self.view.settings().get("terminal_view_last_cursor_pos")
-        if last_cursor_pos and last_cursor_pos[0] == cursor_pos[0] and last_cursor_pos[1] == cursor_pos[1]:
-            return
+        if self._sub_buffer.terminal_emulator().cursor_is_hidden():
+            self.view.sel().clear()
+        else:
+            cursor_pos = self._sub_buffer.terminal_emulator().cursor()
+            last_cursor_pos = self.view.settings().get("terminal_view_last_cursor_pos")
+            if last_cursor_pos and last_cursor_pos[0] == cursor_pos[0] and \
+                    last_cursor_pos[1] == cursor_pos[1]:
+                return
 
-        tp = self.view.text_point(cursor_pos[0], cursor_pos[1])
-        self.view.sel().clear()
-        self.view.sel().add(sublime.Region(tp, tp))
-        self.view.settings().set("terminal_view_last_cursor_pos", cursor_pos)
+            tp = self.view.text_point(cursor_pos[0], cursor_pos[1])
+            self.view.sel().clear()
+            self.view.sel().add(sublime.Region(tp, tp))
+            self.view.settings().set("terminal_view_last_cursor_pos", cursor_pos)
 
     def _update_lines(self, edit, dirty_lines, color_map):
         self.view.set_read_only(False)
