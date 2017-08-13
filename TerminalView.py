@@ -126,6 +126,7 @@ class TerminalView:
         self._terminal_buffer = \
             sublime_terminal_buffer.SublimeTerminalBuffer(self.view, title, syntax)
         self._terminal_buffer.set_keypress_callback(self.keypress_callback)
+        self._terminal_buffer.set_write_process_input_callback(self.send_string_to_shell)
         self._terminal_buffer_is_open = True
         self._terminal_rows = 0
         self._terminal_columns = 0
