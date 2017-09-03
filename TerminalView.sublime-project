@@ -1,0 +1,38 @@
+{
+    "build_systems":
+    [
+        {
+            "name": "Remove Cache and User Color Schemes",
+            "cmd": ["rm", "-rf", "Cache", "Packages/User/TerminalView"],
+            "working_dir": "$project_path/../.."
+        }
+    ],
+    "folders":
+    [
+        {
+            "path": ".."
+        }
+    ],
+    "settings":
+    {
+        "tab_size": 4,
+        "translate_tabs_to_spaces": true,
+        "trim_trailing_white_space_on_save": true,
+        "rulers": [100]
+    },
+    "SublimeLinter":
+    {
+        "linters":
+        {
+            "flake8":
+            {
+                "excludes":
+                [
+                    "*/test/**"
+                ],
+                "ignore": "W",
+                "max-line-length": 100
+            }
+        }
+    }
+}

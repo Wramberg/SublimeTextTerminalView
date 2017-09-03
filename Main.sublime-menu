@@ -38,6 +38,10 @@
                                 "args": {"file": "${packages}/TerminalView/README.md"},
                                 "caption": "Readme"
                             },
+                            {
+                                "command": "terminal_view_clear_color_scheme_cache",
+                                "caption": "Clear Color Scheme Cache"
+                            },
                         ]
                     }
                 ]

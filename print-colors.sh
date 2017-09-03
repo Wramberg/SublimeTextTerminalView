@@ -1,0 +1,32 @@
+#!/bin/bash
+# generated from pyte/graphics.py
+
+echo -e '\x1B[49m\x1B[30mdefault  black \x1B[40m\x1B[30m black   black \x1B[41m\x1B[30m  red    black \x1B[49m\x1B[39m'
+echo -e '\x1B[49m\x1B[31mdefault   red  \x1B[40m\x1B[31m black    red  \x1B[41m\x1B[31m  red     red  \x1B[49m\x1B[39m'
+echo -e '\x1B[49m\x1B[32mdefault  green \x1B[40m\x1B[32m black   green \x1B[41m\x1B[32m  red    green \x1B[49m\x1B[39m'
+echo -e '\x1B[49m\x1B[33mdefault  brown \x1B[40m\x1B[33m black   brown \x1B[41m\x1B[33m  red    brown \x1B[49m\x1B[39m'
+echo -e '\x1B[49m\x1B[34mdefault  blue  \x1B[40m\x1B[34m black   blue  \x1B[41m\x1B[34m  red    blue  \x1B[49m\x1B[39m'
+echo -e '\x1B[49m\x1B[35mdefault magenta\x1B[40m\x1B[35m black  magenta\x1B[41m\x1B[35m  red   magenta\x1B[49m\x1B[39m'
+echo -e '\x1B[49m\x1B[36mdefault  cyan  \x1B[40m\x1B[36m black   cyan  \x1B[41m\x1B[36m  red    cyan  \x1B[49m\x1B[39m'
+echo -e '\x1B[49m\x1B[37mdefault  white \x1B[40m\x1B[37m black   white \x1B[41m\x1B[37m  red    white \x1B[49m\x1B[39m'
+echo -e '\x1B[49m\x1B[39mdefault default\x1B[40m\x1B[39m black  default\x1B[41m\x1B[39m  red   default\x1B[49m\x1B[39m'
+
+echo -e '\x1B[42m\x1B[30m green   black \x1B[43m\x1B[30m brown   black \x1B[44m\x1B[30m blue    black \x1B[49m\x1B[39m'
+echo -e '\x1B[42m\x1B[31m green    red  \x1B[43m\x1B[31m brown    red  \x1B[44m\x1B[31m blue     red  \x1B[49m\x1B[39m'
+echo -e '\x1B[42m\x1B[32m green   green \x1B[43m\x1B[32m brown   green \x1B[44m\x1B[32m blue    green \x1B[49m\x1B[39m'
+echo -e '\x1B[42m\x1B[33m green   brown \x1B[43m\x1B[33m brown   brown \x1B[44m\x1B[33m blue    brown \x1B[49m\x1B[39m'
+echo -e '\x1B[42m\x1B[34m green   blue  \x1B[43m\x1B[34m brown   blue  \x1B[44m\x1B[34m blue    blue  \x1B[49m\x1B[39m'
+echo -e '\x1B[42m\x1B[35m green  magenta\x1B[43m\x1B[35m brown  magenta\x1B[44m\x1B[35m blue   magenta\x1B[49m\x1B[39m'
+echo -e '\x1B[42m\x1B[36m green   cyan  \x1B[43m\x1B[36m brown   cyan  \x1B[44m\x1B[36m blue    cyan  \x1B[49m\x1B[39m'
+echo -e '\x1B[42m\x1B[37m green   white \x1B[43m\x1B[37m brown   white \x1B[44m\x1B[37m blue    white \x1B[49m\x1B[39m'
+echo -e '\x1B[42m\x1B[39m green  default\x1B[43m\x1B[39m brown  default\x1B[44m\x1B[39m blue   default\x1B[49m\x1B[39m'
+
+echo -e '\x1B[45m\x1B[30mmagenta  black \x1B[46m\x1B[30m cyan    black \x1B[47m\x1B[30m white   black \x1B[49m\x1B[39m'
+echo -e '\x1B[45m\x1B[31mmagenta   red  \x1B[46m\x1B[31m cyan     red  \x1B[47m\x1B[31m white    red  \x1B[49m\x1B[39m'
+echo -e '\x1B[45m\x1B[32mmagenta  green \x1B[46m\x1B[32m cyan    green \x1B[47m\x1B[32m white   green \x1B[49m\x1B[39m'
+echo -e '\x1B[45m\x1B[33mmagenta  brown \x1B[46m\x1B[33m cyan    brown \x1B[47m\x1B[33m white   brown \x1B[49m\x1B[39m'
+echo -e '\x1B[45m\x1B[34mmagenta  blue  \x1B[46m\x1B[34m cyan    blue  \x1B[47m\x1B[34m white   blue  \x1B[49m\x1B[39m'
+echo -e '\x1B[45m\x1B[35mmagenta magenta\x1B[46m\x1B[35m cyan   magenta\x1B[47m\x1B[35m white  magenta\x1B[49m\x1B[39m'
+echo -e '\x1B[45m\x1B[36mmagenta  cyan  \x1B[46m\x1B[36m cyan    cyan  \x1B[47m\x1B[36m white   cyan  \x1B[49m\x1B[39m'
+echo -e '\x1B[45m\x1B[37mmagenta  white \x1B[46m\x1B[37m cyan    white \x1B[47m\x1B[37m white   white \x1B[49m\x1B[39m'
+echo -e '\x1B[45m\x1B[39mmagenta default\x1B[46m\x1B[39m cyan   default\x1B[47m\x1B[39m white  default\x1B[49m\x1B[39m'

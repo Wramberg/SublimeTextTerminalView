@@ -3,6 +3,7 @@ Wrapper module around a Sublime Text 3 view for showing a terminal look-a-like
 """
 import collections
 import time
+import os
 
 import sublime
 import sublime_plugin
@@ -11,7 +12,7 @@ from . import gateone_terminal_emulator
 from . import pyte_terminal_emulator
 from . import utils
 from . import sublime_view_cache
-
+from .convert_color_scheme import convert_color_scheme
 
 class SublimeBufferManager():
     """
@@ -53,7 +54,10 @@ class SublimeTerminalBuffer():
         self._view.settings().set("draw_indent_guides", False)
         self._view.settings().set("caret_style", "blink")
         self._view.settings().set("scroll_past_end", False)
-        self._view.settings().add_on_change('color_scheme', lambda: set_color_scheme(self._view))
+        self._view.settings().set("rulers", [])
+
+        self._is_setting_color_scheme = False
+        self._view.settings().add_on_change("terminal_view_color_scheme", self._set_color_scheme)
 
         if syntax_file is not None:
             self._view.set_syntax_file("Packages/User/" + syntax_file)
@@ -171,6 +175,26 @@ class SublimeTerminalBuffer():
                     self.terminal_emulator().next_page()
 
             self._view.settings().set("terminal_view_scroll", None)
+
+    def _set_color_scheme(self):
+        """
+        Set color scheme for view
+        """
+        if self._is_setting_color_scheme:
+            return
+        self._is_setting_color_scheme = True
+        scheme = self._view.settings().get("color_scheme")
+        name = os.path.splitext(os.path.basename(scheme))[0] + ".hidden-tmTheme"
+        resource = "Packages/User/TerminalView/{}".format(name)
+        if self._view.settings().get("color_scheme") != resource:
+            outfile = os.path.join(sublime.packages_path(), "..", resource)
+            if not os.path.isfile(outfile):
+                outfile = os.path.join(sublime.packages_path(), "..", resource)
+                convert_color_scheme(scheme, outfile)
+            # This triggers the function again, but it exits prematurely
+            # because self._is_setting_color_scheme is True.
+            self._view.settings().set("color_scheme", resource)
+        self._is_setting_color_scheme = False
 
 
 class TerminalViewScroll(sublime_plugin.TextCommand):
@@ -433,20 +457,3 @@ class TerminalViewClear(sublime_plugin.TextCommand):
         region = sublime.Region(start, end)
         self.view.erase(edit, region)
         self.view.set_read_only(True)
-
-
-def set_color_scheme(view):
-    """
-    Set color scheme for view
-    """
-    color_scheme = "Packages/TerminalView/TerminalView.hidden-tmTheme"
-
-    # Check if user color scheme exists
-    try:
-        sublime.load_resource("Packages/User/TerminalView.hidden-tmTheme")
-        color_scheme = "Packages/User/TerminalView.hidden-tmTheme"
-    except:
-        pass
-
-    if view.settings().get('color_scheme') != color_scheme:
-        view.settings().set('color_scheme', color_scheme)

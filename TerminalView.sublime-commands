@@ -35,4 +35,8 @@
     "command": "edit_settings",
     "args": {"base_file": "${packages}/TerminalView/TerminalView.sublime-commands", "default": "[]"},
   },
+  {
+    "caption": "Preferences: Terminal View: Clear Color Scheme Cache",
+    "command": "terminal_view_clear_color_scheme_cache"
+  },
 ]

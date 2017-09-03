@@ -93,6 +93,7 @@ class TerminalViewOpen(sublime_plugin.WindowCommand):
 
 
 class TerminalViewActivate(sublime_plugin.TextCommand):
+
     def run(self, _, cmd, title, cwd, syntax, keep_open):
         terminal_view = TerminalView(self.view)
         try:
